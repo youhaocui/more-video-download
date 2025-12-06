@@ -1,0 +1,89 @@
+Chinese(TW):
+
+打包需求與步驟 (PyInstaller)
+
+此應用程式使用 Python 和 CustomTkinter 建立 GUI，但實際的下載與格式轉換工作嚴重依賴外部指令行工具。
+要將應用程式成功打包並分發為單一可執行檔，需要以下組件：
+
+1. 必要的外部指令行工具 (必須與程式一同分發)
+Python 腳本會使用 'subprocess' 來呼叫這些工具。為了讓程式正常運作，它們的可執行檔必須放置在最終 'UniversalMediaDownloader.exe' 的相同目錄下。
+
+1.yt-dlp:
+ 用途: 下載 YouTube 和其他支援的影音網站內容。
+ 需求: 可執行檔 (例如 Windows 上的 'yt-dlp.exe')。
+ 可用網站:Downloadable_videos.txt有詳細說明。
+
+2.ffmpeg:
+用途: 處理媒體格式轉換 (例如轉為 MP3, MP4) 和音訊/視訊合併。
+需求: 可執行檔 (例如 Windows 上的 'ffmpeg.exe')。
+
+3.spotdl:
+用途: 專門用於從 Spotify 連結下載音樂的工具。
+需求: 可執行檔 (例如 Windows 上的 'spotdl.exe')。
+
+2. 必要的 Python 函式庫 (必須在環境中安裝)
+
+在執行 PyInstaller 之前，您必須在您的 Python 環境中安裝這些函式庫。
+
+customtkinter: (用於 GUI 框架)
+安裝: pip install customtkinter spotdl yt-dlp 
+
+3. 打包工具
+
+PyInstaller: 創建獨立可執行檔的推薦工具。
+安裝: pip install PyInstaller
+
+4. PyInstaller 指令
+
+pyinstaller --noconsole --onefile youtube_spotify_downloader.py
+
+------------------------------------------------------------------------------------------------------------
+
+English:
+
+Packaging Requirements and Steps (PyInstaller)
+
+This application uses Python and CustomTkinter to build the GUI, but the actual downloading and format conversion work heavily relies on external command-line tools.
+
+To successfully package and distribute the application as a single executable, the following components are required:
+
+1. Necessary external command-line tools (must be distributed with the application)
+
+Python scripts use 'subprocess' to call these tools. For the program to function correctly, their executables must be placed in the same directory as the final 'UniversalMediaDownloader.exe'.
+
+1. yt-dlp:
+
+Purpose: Downloads content from YouTube and other supported video websites.
+
+Requirements: Executable file (e.g., 'yt-dlp.exe' on Windows).
+
+Available website: Downloadable_videos.txt has detailed information.
+
+2. ffmpeg:
+
+Purpose: Handles media format conversion (e.g., to MP3, MP4) and audio/video merging.
+
+Requirement: Executable file (e.g., 'ffmpeg.exe' on Windows).
+
+3. spotdl:
+Purpose: A tool specifically designed for downloading music from Spotify links.
+
+Requirement: Executable file (e.g., 'spotdl.exe' on Windows).
+
+2. Necessary Python Libraries (Must be installed in your environment)
+
+You must install these libraries in your Python environment before running PyInstaller.
+
+customtkinter: (For GUI framework)
+
+Installation: pip install customtkinter spotdl yt-dlp
+
+3. Packaging Tools
+
+PyInstaller: Recommended tool for creating standalone executables.
+
+Installation: pip install PyInstaller
+
+4. PyInstaller Commands
+
+pyinstaller --noconsole --onefile youtube_spotify_downloader.py
