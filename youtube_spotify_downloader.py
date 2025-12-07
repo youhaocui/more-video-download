@@ -10,8 +10,10 @@ from tkinter import messagebox
 
 # --- 設定與路徑處理 ---
 if getattr(sys, 'frozen', False):
-    # 當程式被打包成 .exe 時的路徑
-    APPLICATION_PATH = os.path.dirname(sys.executable)
+    # 【關鍵修正點 1】: 當程式被打包成單一檔案 (--onefile) 時，
+    # sys._MEIPASS 指向 PyInstaller 暫時解壓縮檔案的目錄。
+    # 這是訪問 yt-dlp.exe, ffmpeg.exe 等內嵌工具的正確路徑。
+    APPLICATION_PATH = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
 else:
     # 當程式直接運行 Python 腳本時的路徑
     APPLICATION_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -35,6 +37,7 @@ FORMAT_OPTIONS = {
     'AAC_AUDIO': ['-x', '--audio-format', 'aac'],
     'MP4_VIDEO': ['--recode-video', 'mp4'], 
     'MOV_VIDEO': ['--recode-video', 'mov'],
+    'WEBM_VIDEO': ['--recode-video', 'webm'], # 新增 WebM 格式
 }
 
 # 視訊畫質選擇
@@ -51,7 +54,7 @@ AUDIO_QUALITY_OPTIONS = {
     'MEDIUM_AUDIO': '5', # 中等品質 (CBR)
 }
 
-# --- 國際化 (i18n) 資料：已添加選項翻譯 ---
+# --- 國際化 (i18n) 資料：已添加選項翻譯和新語言 ---
 LANG_DATA = {
     'zh_TW': {
         'lang_display': "zh_TW (繁體中文)", 
@@ -77,7 +80,7 @@ LANG_DATA = {
         'combobox_lang_label': "選擇語言:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (音頻)', 'FLAC_LOSSLESS': 'FLAC (無損)', 'AAC_AUDIO': 'AAC (音頻)', 'MP4_VIDEO': 'MP4 (視訊)', 'MOV_VIDEO': 'MOV (視訊)'},
+            'formats': {'MP3_AUDIO': 'MP3 (音頻)', 'FLAC_LOSSLESS': 'FLAC (無損)', 'AAC_AUDIO': 'AAC (音頻)', 'MP4_VIDEO': 'MP4 (視訊)', 'MOV_VIDEO': 'MOV (視訊)', 'WEBM_VIDEO': 'WebM (視訊)'},
             'video_qualities': {'BEST_VIDEO': '最高畫質 (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': '最高音質 (Best/VBR)', 'HIGH_AUDIO': '高品質 (High/VBR)', 'MEDIUM_AUDIO': '中等品質 (Medium/CBR)'}
         }
@@ -104,9 +107,9 @@ LANG_DATA = {
         'status_error_unexpected': "❌ 发生未预期的错误:", 
         'status_path_set': "已设置新的输出路径。", 
         'combobox_lang_label': "选择语言:", 
-        # 新增的选项翻译
+        # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (音频)', 'FLAC_LOSSLESS': 'FLAC (无损)', 'AAC_AUDIO': 'AAC (音频)', 'MP4_VIDEO': 'MP4 (视频)', 'MOV_VIDEO': 'MOV (视频)'},
+            'formats': {'MP3_AUDIO': 'MP3 (音频)', 'FLAC_LOSSLESS': 'FLAC (无损)', 'AAC_AUDIO': 'AAC (音频)', 'MP4_VIDEO': 'MP4 (视频)', 'MOV_VIDEO': 'MOV (视频)', 'WEBM_VIDEO': 'WebM (视频)'},
             'video_qualities': {'BEST_VIDEO': '最高画质 (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': '最高音质 (Best/VBR)', 'HIGH_AUDIO': '高品质 (High/VBR)', 'MEDIUM_AUDIO': '中等品质 (Medium/CBR)'}
         }
@@ -135,7 +138,7 @@ LANG_DATA = {
         'combobox_lang_label': "Select Language:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Lossless)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Lossless)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Highest Quality (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Best Quality (VBR)', 'HIGH_AUDIO': 'High Quality (VBR)', 'MEDIUM_AUDIO': 'Medium Quality (CBR)'}
         }
@@ -158,13 +161,13 @@ LANG_DATA = {
         'status_download_success_spotify': "✅ Spotify楽曲のダウンロードに成功しました！保存先:", 
         'status_download_success_general': "✅ コンテンツのダウンロードと変換に成功しました！保存先:", 
         'status_error_exec': "❌ 実行に失敗しました。エラーコード:", 
-        'status_error_not_found': "❌ エラー: yt-dlp, ffmpeg, または spotdlが見つかりません。", 
+        'status_error_not_found': "❌ エラー: 找不到 yt-dlp, ffmpeg, 或 spotdl。請檢查同目錄文件。", 
         'status_error_unexpected': "❌ 予期せぬエラーが発生しました:", 
         'status_path_set': "新しい出力先パスが設定されました。", 
         'combobox_lang_label': "言語選択:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (オーディオ)', 'FLAC_LOSSLESS': 'FLAC (ロスレス)', 'AAC_AUDIO': 'AAC (オーディオ)', 'MP4_VIDEO': 'MP4 (ビデオ)', 'MOV_VIDEO': 'MOV (ビデオ)'},
+            'formats': {'MP3_AUDIO': 'MP3 (オーディオ)', 'FLAC_LOSSLESS': 'FLAC (ロスレス)', 'AAC_AUDIO': 'AAC (オーディオ)', 'MP4_VIDEO': 'MP4 (ビデオ)', 'MOV_VIDEO': 'MOV (ビデオ)', 'WEBM_VIDEO': 'WebM (ビデオ)'},
             'video_qualities': {'BEST_VIDEO': '最高画質 (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': '最高音質 (Best/VBR)', 'HIGH_AUDIO': '高音質 (High/VBR)', 'MEDIUM_AUDIO': '中音質 (Medium/CBR)'}
         }
@@ -193,7 +196,7 @@ LANG_DATA = {
         'combobox_lang_label': "Sélectionner la langue:",
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Sans perte)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Vidéo)', 'MOV_VIDEO': 'MOV (Vidéo)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Sans perte)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Vidéo)', 'MOV_VIDEO': 'MOV (Vidéo)', 'WEBM_VIDEO': 'WebM (Vidéo)'},
             'video_qualities': {'BEST_VIDEO': 'Meilleure Qualité (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Meilleure Qualité (VBR)', 'HIGH_AUDIO': 'Haute Qualité (VBR)', 'MEDIUM_AUDIO': 'Qualité Moyenne (CBR)'}
         } 
@@ -222,7 +225,7 @@ LANG_DATA = {
         'combobox_lang_label': "Sprache wählen:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Verlustfrei)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Verlustfrei)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Höchste Qualität (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Beste Qualität (VBR)', 'HIGH_AUDIO': 'Hohe Qualität (VBR)', 'MEDIUM_AUDIO': 'Mittlere Qualität (CBR)'}
         }
@@ -251,7 +254,7 @@ LANG_DATA = {
         'combobox_lang_label': "Seleccionar idioma:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Sin pérdida)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Sin pérdida)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Máxima Calidad (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Mejor Calidad (VBR)', 'HIGH_AUDIO': 'Alta Calidad (VBR)', 'MEDIUM_AUDIO': 'Calidad Media (CBR)'}
         }
@@ -280,7 +283,7 @@ LANG_DATA = {
         'combobox_lang_label': "Selecionar idioma:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Áudio)', 'FLAC_LOSSLESS': 'FLAC (Sem perdas)', 'AAC_AUDIO': 'AAC (Áudio)', 'MP4_VIDEO': 'MP4 (Vídeo)', 'MOV_VIDEO': 'MOV (Vídeo)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Áudio)', 'FLAC_LOSSLESS': 'FLAC (Sem perdas)', 'AAC_AUDIO': 'AAC (Áudio)', 'MP4_VIDEO': 'MP4 (Vídeo)', 'MOV_VIDEO': 'MOV (Vídeo)', 'WEBM_VIDEO': 'WebM (Vídeo)'},
             'video_qualities': {'BEST_VIDEO': 'Qualidade Máxima (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Melhor Qualidade (VBR)', 'HIGH_AUDIO': 'Alta Qualidade (VBR)', 'MEDIUM_AUDIO': 'Qualidade Média (CBR)'}
         }
@@ -309,7 +312,7 @@ LANG_DATA = {
         'combobox_lang_label': "Выбрать язык:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Аудио)', 'FLAC_LOSSLESS': 'FLAC (Без потерь)', 'AAC_AUDIO': 'AAC (Аудио)', 'MP4_VIDEO': 'MP4 (Видео)', 'MOV_VIDEO': 'MOV (Видео)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Аудио)', 'FLAC_LOSSLESS': 'FLAC (Без потерь)', 'AAC_AUDIO': 'AAC (Аудио)', 'MP4_VIDEO': 'MP4 (Видео)', 'MOV_VIDEO': 'MOV (Видео)', 'WEBM_VIDEO': 'WebM (Видео)'},
             'video_qualities': {'BEST_VIDEO': 'Максимальное Качество (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Лучшее Качество (VBR)', 'HIGH_AUDIO': 'Высокое Качество (VBR)', 'MEDIUM_AUDIO': 'Среднее Качество (CBR)'}
         }
@@ -332,15 +335,15 @@ LANG_DATA = {
         'status_download_success_spotify': "✅ Spotify 노래 다운로드 성공! 저장 위치:", 
         'status_download_success_general': "✅ 콘텐츠 다운로드 및 변환 성공! 저장 위치:", 
         'status_error_exec': "❌ 실행 실패, 오류 코드:", 
-        'status_error_not_found': "❌ 오류: yt-dlp, ffmpeg, 또는 spotdl을 찾을 수 없습니다。", 
+        'status_error_not_found': "❌ 오류: 找不到 yt-dlp, ffmpeg, 或 spotdl。", 
         'status_error_unexpected': "❌ 예기치 않은 오류가 발생했습니다:", 
         'status_path_set': "새 출력 경로가 설정되었습니다。", 
         'combobox_lang_label': "언어 선택:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (오디오)', 'FLAC_LOSSLESS': 'FLAC (무손실)', 'AAC_AUDIO': 'AAC (오디오)', 'MP4_VIDEO': 'MP4 (비디오)', 'MOV_VIDEO': 'MOV (비디오)'},
+            'formats': {'MP3_AUDIO': 'MP3 (오디오)', 'FLAC_LOSSLESS': 'FLAC (무손실)', 'AAC_AUDIO': 'AAC (오디오)', 'MP4_VIDEO': 'MP4 (비디오)', 'MOV_VIDEO': 'MOV (비디오)', 'WEBM_VIDEO': 'WebM (비디오)'},
             'video_qualities': {'BEST_VIDEO': '최고 화질 (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
-            'audio_qualities': {'BEST_AUDIO': '최고 음질 (Best/VBR)', 'HIGH_AUDIO': '고음질 (High/VBR)', 'MEDIUM_AUDIO': '중간 음질 (Medium/CBR)'}
+            'audio_qualities': {'BEST_AUDIO': '최고 음질 (Best/VBR)', 'HIGH_AUDIO': '고음질 (High/VBR)', 'MEDIUM_AUDIO': '중간 음질 (CBR)'}
         }
     },
     'ar': {
@@ -367,11 +370,12 @@ LANG_DATA = {
         'combobox_lang_label': "اختر اللغة:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (صوت)', 'FLAC_LOSSLESS': 'FLAC (بدون فقدان)', 'AAC_AUDIO': 'AAC (صوت)', 'MP4_VIDEO': 'MP4 (فيديو)', 'MOV_VIDEO': 'MOV (فيديو)'},
+            'formats': {'MP3_AUDIO': 'MP3 (صوت)', 'FLAC_LOSSLESS': 'FLAC (بدون فقدان)', 'AAC_AUDIO': 'AAC (صوت)', 'MP4_VIDEO': 'MP4 (فيديو)', 'MOV_VIDEO': 'MOV (فيديو)', 'WEBM_VIDEO': 'WebM (فيديو)'},
             'video_qualities': {'BEST_VIDEO': 'أعلى جودة (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'أفضل جودة (VBR)', 'HIGH_AUDIO': 'جودة عالية (VBR)', 'MEDIUM_AUDIO': 'جودة متوسطة (CBR)'}
         }
     },
+    # 新增泰文
     'th': {
         'lang_display': "th (ไทย)", 
         'title': "เครื่องมือดาวน์โหลดสื่อสากล", 
@@ -396,7 +400,7 @@ LANG_DATA = {
         'combobox_lang_label': "เลือกภาษา:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (เสียง)', 'FLAC_LOSSLESS': 'FLAC (ไม่สูญเสีย)', 'AAC_AUDIO': 'AAC (เสียง)', 'MP4_VIDEO': 'MP4 (วิดีโอ)', 'MOV_VIDEO': 'MOV (วิดีโอ)'},
+            'formats': {'MP3_AUDIO': 'MP3 (เสียง)', 'FLAC_LOSSLESS': 'FLAC (ไม่สูญเสีย)', 'AAC_AUDIO': 'AAC (เสียง)', 'MP4_VIDEO': 'MP4 (วิดีโอ)', 'MOV_VIDEO': 'MOV (วิดีโอ)', 'WEBM_VIDEO': 'WebM (วิดีโอ)'},
             'video_qualities': {'BEST_VIDEO': 'คุณภาพสูงสุด (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'คุณภาพเสียงดีที่สุด (VBR)', 'HIGH_AUDIO': 'คุณภาพสูง (VBR)', 'MEDIUM_AUDIO': 'คุณภาพปานกลาง (CBR)'}
         }
@@ -425,7 +429,7 @@ LANG_DATA = {
         'combobox_lang_label': "Chọn Ngôn ngữ:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Âm thanh)', 'FLAC_LOSSLESS': 'FLAC (Không mất mát)', 'AAC_AUDIO': 'AAC (Âm thanh)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Âm thanh)', 'FLAC_LOSSLESS': 'FLAC (Không mất mát)', 'AAC_AUDIO': 'AAC (Âm thanh)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Chất lượng Cao nhất (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Chất lượng Tốt nhất (VBR)', 'HIGH_AUDIO': 'Chất lượng Cao (VBR)', 'MEDIUM_AUDIO': 'Chất lượng Trung bình (CBR)'}
         }
@@ -454,7 +458,7 @@ LANG_DATA = {
         'combobox_lang_label': "Seleziona Lingua:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Senza perdita)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Senza perdita)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Massima Qualità (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Migliore Qualità (VBR)', 'HIGH_AUDIO': 'Alta Qualità (VBR)', 'MEDIUM_AUDIO': 'Qualità Media (CBR)'}
         }
@@ -478,41 +482,41 @@ LANG_DATA = {
         'status_download_success_general': "✅ İçerik başarıyla indirildi ve dönüştürüldü! Kaydedildi:", 
         'status_error_exec': "❌ Yürütme başarısız, kod:", 
         'status_error_not_found': "❌ HATA: yt-dlp, ffmpeg veya spotdl bulunamadı.", 
-        'status_error_unexpected': "❌ Beklenmeyen bir hata oluştu:", 
+        'status_error_unexpected': "❌ Beklenmedik bir hata oluştu:", 
         'status_path_set': "Yeni çıkış yolu ayarlandı.", 
         'combobox_lang_label': "Dil Seçin:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Ses)', 'FLAC_LOSSLESS': 'FLAC (Kayıpsız)', 'AAC_AUDIO': 'AAC (Ses)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Ses)', 'FLAC_LOSSLESS': 'FLAC (Kayıpsız)', 'AAC_AUDIO': 'AAC (Ses)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'En Yüksek Kalite (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
-            'audio_qualities': {'BEST_AUDIO': 'En İyi Ses Kalitesi (VBR)', 'HIGH_AUDIO': 'Yüksek Ses Kalitesi (VBR)', 'MEDIUM_AUDIO': 'Orta Ses Kalitesi (CBR)'}
+            'audio_qualities': {'BEST_AUDIO': 'En İyi Kalite (VBR)', 'HIGH_AUDIO': 'Yüksek Kalite (VBR)', 'MEDIUM_AUDIO': 'Orta Kalite (CBR)'}
         }
     },
     'pl': {
         'lang_display': "pl (Polski)", 
         'title': "Uniwersalny Downloader Mediów", 
-        'url_label': "Wprowadź URL (Obsługa wielu witryn):", 
+        'url_label': "Wprowadź URL (Obsługa Wielu Stron):", 
         'format_label': "Wybierz Format Wyjściowy:", 
         'quality_video_label': "Wybierz Jakość Wideo:", 
         'quality_audio_label': "Wybierz Jakość Audio:", 
         'path_label': "Ścieżka Wyjściowa:", 
         'browse_button': "Przeglądaj...", 
         'download_button': "🚀 Rozpocznij Pobieranie i Konwersję", 
-        'ready_status': "Gotowe. Obsługa wielu witryn.", 
+        'ready_status': "Gotowe. Obsługa wielu stron.", 
         'error_no_url': "⚠️ Proszę wprowadzić URL!", 
         'status_downloading_prepare': "Przygotowywanie polecenia pobierania...", 
         'status_downloading_spotify': "Przetwarzanie linku Spotify...", 
         'status_downloading_execute': "Wykonywanie pobierania i konwersji...", 
         'status_download_success_spotify': "✅ Piosenka Spotify pobrana pomyślnie! Zapisano w:", 
-        'status_download_success_general': "✅ Zawartość pobrana i skonwertowana pomyślnie! Zapisano w:", 
-        'status_error_exec': "❌ Błąd wykonania, kod:", 
-        'status_error_not_found': "❌ BŁĄD: Nie znaleziono yt-dlp, ffmpeg lub spotdl.", 
+        'status_download_success_general': "✅ Treść pobrana i skonwertowana pomyślnie! Zapisano w:", 
+        'status_error_exec': "❌ Wykonanie nie powiodło się, kod:", 
+        'status_error_not_found': "❌ BŁĄD: nie znaleziono yt-dlp, ffmpeg ani spotdl.", 
         'status_error_unexpected': "❌ Wystąpił nieoczekiwany błąd:", 
-        'status_path_set': "Ustawiono nową ścieżkę wyjściową。", 
+        'status_path_set': "Ustawiono nową ścieżkę wyjściową.", 
         'combobox_lang_label': "Wybierz Język:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Bezstratny)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Wideo)', 'MOV_VIDEO': 'MOV (Wideo)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Bezstratny)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Wideo)', 'MOV_VIDEO': 'MOV (Wideo)', 'WEBM_VIDEO': 'WebM (Wideo)'},
             'video_qualities': {'BEST_VIDEO': 'Najwyższa Jakość (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Najlepsza Jakość (VBR)', 'HIGH_AUDIO': 'Wysoka Jakość (VBR)', 'MEDIUM_AUDIO': 'Średnia Jakość (CBR)'}
         }
@@ -541,38 +545,9 @@ LANG_DATA = {
         'combobox_lang_label': "Selecteer Taal:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Lossless)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Audio)', 'FLAC_LOSSLESS': 'FLAC (Lossless)', 'AAC_AUDIO': 'AAC (Audio)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Hoogste Kwaliteit (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Beste Kwaliteit (VBR)', 'HIGH_AUDIO': 'Hoge Kwaliteit (VBR)', 'MEDIUM_AUDIO': 'Middelmatige Kwaliteit (CBR)'}
-        }
-    },
-    'sv': {
-        'lang_display': "sv (Svenska)", 
-        'title': "Universal Media Nedladdare", 
-        'url_label': "Ange URL (Stöd för flera webbplatser):", 
-        'format_label': "Välj Utdataformat:", 
-        'quality_video_label': "Välj Videokvalitet:", 
-        'quality_audio_label': "Välj Ljudkvalitet:", 
-        'path_label': "Utdata Sökväg:", 
-        'browse_button': "Bläddra...", 
-        'download_button': "🚀 Starta Nedladdning & Konvertera", 
-        'ready_status': "Klar. Stöd för flera webbplatser.", 
-        'error_no_url': "⚠️ Ange en URL!", 
-        'status_downloading_prepare': "Förbereder nedladdningskommando...", 
-        'status_downloading_spotify': "Bearbetar Spotify-länk...", 
-        'status_downloading_execute': "Utför nedladdning och konvertering...", 
-        'status_download_success_spotify': "✅ Spotify-låten har laddats ner framgångsrikt! Sparad i:", 
-        'status_download_success_general': "✅ Innehållet har laddats ner och konverterats framgångsrikt! Sparad i:", 
-        'status_error_exec': "❌ Utförandet misslyckades, kod:", 
-        'status_error_not_found': "❌ FEL: yt-dlp, ffmpeg eller spotdl hittades inte。", 
-        'status_error_unexpected': "❌ Ett oväntat fel uppstod:", 
-        'status_path_set': "Ny utdatasökväg har ställts in。", 
-        'combobox_lang_label': "Välj Språk:", 
-        # 新增的選項翻譯
-        'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Ljud)', 'FLAC_LOSSLESS': 'FLAC (Lossless)', 'AAC_AUDIO': 'AAC (Ljud)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
-            'video_qualities': {'BEST_VIDEO': 'Högsta Kvalitet (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
-            'audio_qualities': {'BEST_AUDIO': 'Bästa Kvalitet (VBR)', 'HIGH_AUDIO': 'Hög Kvalitet (VBR)', 'MEDIUM_AUDIO': 'Medel Kvalitet (CBR)'}
         }
     },
     'fi': {
@@ -599,7 +574,7 @@ LANG_DATA = {
         'combobox_lang_label': "Valitse Kieli:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Ääni)', 'FLAC_LOSSLESS': 'FLAC (Häviötön)', 'AAC_AUDIO': 'AAC (Ääni)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Ääni)', 'FLAC_LOSSLESS': 'FLAC (Häviötön)', 'AAC_AUDIO': 'AAC (Ääni)', 'MP4_VIDEO': 'MP4 (Video)', 'MOV_VIDEO': 'MOV (Video)', 'WEBM_VIDEO': 'WebM (Video)'},
             'video_qualities': {'BEST_VIDEO': 'Paras Laatu (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Paras Äänenlaatu (VBR)', 'HIGH_AUDIO': 'Korkea Äänenlaatu (VBR)', 'MEDIUM_AUDIO': 'Keskitaso Äänenlaatu (CBR)'}
         }
@@ -615,37 +590,37 @@ LANG_DATA = {
         'browse_button': "Αναζήτηση...", 
         'download_button': "🚀 Έναρξη Λήψης & Μετατροπής", 
         'ready_status': "Έτοιμο. Υποστήριξη πολλαπλών ιστοτόπων。", 
-        'error_no_url': "⚠️ Παρακαλώ εισάγετε μια διεύθυνση URL!", 
+        'error_no_url': "⚠️ Παρακαλώ εισαγάγετε μια διεύθυνση URL!", 
         'status_downloading_prepare': "Προετοιμασία εντολής λήψης...", 
         'status_downloading_spotify': "Επεξεργασία συνδέσμου Spotify...", 
         'status_downloading_execute': "Εκτέλεση λήψης και μετατροπής...", 
         'status_download_success_spotify': "✅ Το τραγούδι Spotify λήφθηκε επιτυχώς! Αποθηκεύτηκε:", 
         'status_download_success_general': "✅ Το περιεχόμενο λήφθηκε και μετατράπηκε επιτυχώς! Αποθηκεύτηκε:", 
-        'status_error_exec': "❌ Αποτυχία εκτέλεσης, κωδικός:", 
-        'status_error_not_found': "❌ ΣΦΑΛΜΑ: Το yt-dlp, ffmpeg ή spotdl δεν βρέθηκε。", 
-        'status_error_unexpected': "❌ Προέκυψε ένα απρόσμενο σφάλμα:", 
+        'status_error_exec': "❌ Η εκτέλεση απέτυχε, κωδικός:", 
+        'status_error_not_found': "❌ ΣΦΑΛΜΑ: Δεν βρέθηκε yt-dlp, ffmpeg, ή spotdl。", 
+        'status_error_unexpected': "❌ Προέκυψε ένα απροσδόκητο σφάλμα:", 
         'status_path_set': "Έχει οριστεί νέα διαδρομή εξόδου。", 
-        'combobox_lang_label': "Επιλογή Γλώσσας:", 
+        'combobox_lang_label': "Επιλέξτε Γλώσσα:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (Ήχος)', 'FLAC_LOSSLESS': 'FLAC (Χωρίς απώλειες)', 'AAC_AUDIO': 'AAC (Ήχος)', 'MP4_VIDEO': 'MP4 (Βίντεο)', 'MOV_VIDEO': 'MOV (Βίντεο)'},
-            'video_qualities': {'BEST_VIDEO': 'Καλύτερη Ποιότητα (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
+            'formats': {'MP3_AUDIO': 'MP3 (Ήχου)', 'FLAC_LOSSLESS': 'FLAC (Χωρίς απώλειες)', 'AAC_AUDIO': 'AAC (Ήχου)', 'MP4_VIDEO': 'MP4 (Βίντεο)', 'MOV_VIDEO': 'MOV (Βίντεο)', 'WEBM_VIDEO': 'WebM (Βίντεο)'},
+            'video_qualities': {'BEST_VIDEO': 'Υψηλότερη Ποιότητα (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'Καλύτερη Ποιότητα Ήχου (VBR)', 'HIGH_AUDIO': 'Υψηλή Ποιότητα Ήχου (VBR)', 'MEDIUM_AUDIO': 'Μέτρια Ποιότητα Ήχου (CBR)'}
         }
     },
     'hi': {
         'lang_display': "hi (हिन्दी)", 
-        'title': "सार्वभौमिक मीडिया डाउनलोडर", 
+        'title': "यूनिवर्सल मीडिया डाउनलोडर", 
         'url_label': "URL दर्ज करें (बहु-साइट समर्थन):", 
         'format_label': "आउटपुट प्रारूप चुनें:", 
         'quality_video_label': "वीडियो गुणवत्ता चुनें:", 
         'quality_audio_label': "ऑडियो गुणवत्ता चुनें:", 
         'path_label': "आउटपुट पथ:", 
         'browse_button': "ब्राउज़ करें...", 
-        'download_button': "🚀 डाउनलोड और कनवर्ट शुरू करें", 
+        'download_button': "🚀 डाउनलोड और कन्वर्ट शुरू करें", 
         'ready_status': "तैयार है। बहु-साइट समर्थन।", 
-        'error_no_url': "⚠️ कृपया URL दर्ज करें!", 
-        'status_downloading_prepare': "डाउनलोड कमांड तैयार हो रहा है...", 
+        'error_no_url': "⚠️ कृपया एक URL दर्ज करें!", 
+        'status_downloading_prepare': "डाउनलोड कमांड तैयार किया जा रहा है...", 
         'status_downloading_spotify': "Spotify लिंक संसाधित हो रहा है...", 
         'status_downloading_execute': "डाउनलोड और कनवर्ट निष्पादित हो रहा है...", 
         'status_download_success_spotify': "✅ Spotify गाना सफलतापूर्वक डाउनलोड हो गया! सहेजा गया:", 
@@ -657,58 +632,17 @@ LANG_DATA = {
         'combobox_lang_label': "भाषा चुनें:", 
         # 新增的選項翻譯
         'options': {
-            'formats': {'MP3_AUDIO': 'MP3 (ऑडियो)', 'FLAC_LOSSLESS': 'FLAC (हानिरहित)', 'AAC_AUDIO': 'AAC (ऑडियो)', 'MP4_VIDEO': 'MP4 (वीडियो)', 'MOV_VIDEO': 'MOV (वीडियो)'},
+            'formats': {'MP3_AUDIO': 'MP3 (ऑडियो)', 'FLAC_LOSSLESS': 'FLAC (हानिरहित)', 'AAC_AUDIO': 'AAC (ऑडियो)', 'MP4_VIDEO': 'MP4 (वीडियो)', 'MOV_VIDEO': 'MOV (वीडियो)', 'WEBM_VIDEO': 'WebM (वीडियो)'},
             'video_qualities': {'BEST_VIDEO': 'उच्चतम गुणवत्ता (Best)', 'FHD_1080P': '1080p (FHD)', 'HD_720P': '720p (HD)'},
             'audio_qualities': {'BEST_AUDIO': 'सर्वोत्तम ऑडियो गुणवत्ता (VBR)', 'HIGH_AUDIO': 'उच्च ऑडियो गुणवत्ता (VBR)', 'MEDIUM_AUDIO': 'मध्यम ऑडियो गुणवत्ता (CBR)'}
         }
-    },
-    # 您可以繼續添加其他語言...
+    }
 }
 
-# --- 語言偵測和處理邏輯 (優化後版本) ---
-
-def get_system_language():
-    """
-    偵測系統首選語言，優先返回包含區域的代碼 (e.g., 'zh_TW')。
-    """
-    try:
-        # 1. 獲取系統的預設語言設定 (例如 'zh_TW.UTF-8' 或 'C' 等)
-        system_locale = locale.getdefaultlocale()
-        
-        if system_locale and system_locale[0]:
-            # 提取完整的語言代碼 (例如 'zh_TW') 並轉換為小寫，用下劃線連接
-            full_lang_code = system_locale[0].split('.')[0].replace('-', '_').lower()
-            
-            # 2. 檢查完整的區域代碼是否在支援列表中
-            if full_lang_code in LANG_DATA:
-                return full_lang_code
-            
-            # 3. 如果完整的區域代碼不在列表中，嘗試使用基礎語言代碼 (例如 'zh')
-            base_lang_code = full_lang_code.split('_')[0]
-            
-            # 特殊處理中文：優先分配到 zh_TW 或 zh_CN
-            if base_lang_code == 'zh':
-                # 簡體中文區域代碼常見的有 zh_CN, zh_SG
-                if full_lang_code in ('zh_cn', 'zh-cn', 'zh_sg', 'zh-sg'): 
-                    return 'zh_CN'
-                else: 
-                    # 繁體中文區域代碼常見的有 zh_TW, zh_HK, zh_MO
-                    return 'zh_TW' # 默認使用 zh_TW (繁體中文)
-
-            # 4. 檢查基礎語言代碼是否在支援列表中 (如 'en', 'fr', 'de')
-            if base_lang_code in LANG_DATA:
-                return base_lang_code
-
-    except Exception as e:
-        print(f"Error detecting system locale: {e}")
-        
-    # 5. 最終預設
-    return 'en' 
-
-# --- 網址判斷函式 ---
+# --- 輔助函式 ---
 def is_spotify_url(url):
-    """檢查網址是否為 Spotify 連結"""
-    spotify_pattern = r'^(https?:\/\/open\.spotify\.com\/(track|album|playlist|artist|show|episode)\/[a-zA-Z0-9]+)'
+    """檢查 URL 是否為 Spotify 連結"""
+    spotify_pattern = re.compile(r'https?://open\.spotify\.com/(track|album|playlist|artist)/[a-zA-Z0-9]+')
     return re.match(spotify_pattern, url)
 
 # --- 核心下載功能 ---
@@ -718,12 +652,23 @@ def download_content(url, format_key, quality_key, output_path, status_callback,
     is_spotify = is_spotify_url(url)
     status_callback(texts['status_downloading_prepare'], "blue")
 
+    # 確保外部工具使用絕對路徑 (使用 APPLICATION_PATH，它指向 PyInstaller 臨時目錄)
+    YT_DLP_PATH = os.path.join(APPLICATION_PATH, 'yt-dlp')
+    SPOTDL_PATH = os.path.join(APPLICATION_PATH, 'spotdl')
+    FFMPEG_PATH = os.path.join(APPLICATION_PATH, 'ffmpeg') 
+
+    if os.name == 'nt': # Windows 系統加上 .exe
+         YT_DLP_PATH += '.exe'
+         SPOTDL_PATH += '.exe'
+         FFMPEG_PATH += '.exe'
+
     if is_spotify:
         status_callback(texts['status_downloading_spotify'], "blue")
-        # spotdl 輸出路徑帶有命名模板，這裡使用相對路徑，讓 spotdl 處理絕對路徑
+        # spotdl 輸出路徑帶有命名模板，這裡使用絕對路徑，讓 spotdl 處理絕對路徑
+        # 注意: spotdl 必須使用相對路徑來處理輸出模板，但在 command list 中必須使用絕對路徑執行檔
         spotdl_output_template = os.path.join(output_path, "{artist} - {title}.{ext}")
         command = [
-            'spotdl',
+            SPOTDL_PATH, # <-- 使用絕對路徑
             'download',
             '--output', spotdl_output_template,
             url
@@ -735,10 +680,11 @@ def download_content(url, format_key, quality_key, output_path, status_callback,
         format_settings = FORMAT_OPTIONS.get(format_key, [])
         is_audio_download = 'AUDIO' in format_key or 'LOSSLESS' in format_key
         
-        # yt-dlp 輸出路徑和格式設定
-        yt_dlp_output_template = os.path.join(output_path, "%(title)s.%(ext)s")
+        # yt-dlp 輸出路徑和格式設定 - 關鍵：明確傳遞 ffmpeg-location
+        yt_dlp_output_template = os.path.join(output_path, "%(playlist_index)s - %(uploader)s - %(title)s.%(ext)s")
         command = [
-            'yt-dlp', 
+            YT_DLP_PATH, # <-- 使用絕對路徑
+            '--ffmpeg-location', FFMPEG_PATH, # 【關鍵修正點 2】：明確指定 FFmpeg 路徑給 yt-dlp
             '-N', '8', # 8 執行緒加速下載
             '--no-part', # 下載完成後不保留 .part 文件
             '-o', yt_dlp_output_template, 
@@ -747,19 +693,31 @@ def download_content(url, format_key, quality_key, output_path, status_callback,
         if is_audio_download:
             # 音頻下載：加入音質參數
             quality_value = AUDIO_QUALITY_OPTIONS.get(quality_key, '0')
-            command.extend(['--audio-quality', quality_value])
+            # 確保 --audio-quality 只在下載音頻時加入
+            if '-x' in format_settings:
+                command.extend(['--audio-quality', quality_value])
+            else:
+                # 如果沒有 -x (extract audio)，則不加入 audio-quality 參數
+                pass
         else:
             # 視訊下載：加入畫質參數
             quality_selector = QUALITY_OPTIONS.get(quality_key, 'bestvideo+bestaudio/best')
             command.extend(['-f', quality_selector])
-            
-        
+
     try:
-        # 執行命令 (不顯示終端機視窗)
-        subprocess.run(command, check=True, capture_output=True, text=True, encoding='utf-8', timeout=None, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        # 執行命令 (不顯示終端機視窗，此 flag 在 Windows 上有效)
+        subprocess.run(
+            command, 
+            check=True, 
+            capture_output=True, 
+            text=True, 
+            encoding='utf-8', 
+            timeout=None, 
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        )
         
         # 成功訊息包含輸出路徑
-        path_msg = f"{output_path}" 
+        path_msg = f"{output_path}"
         if is_spotify:
             status_callback(f"{texts['status_download_success_spotify']} {path_msg}", "green")
         else:
@@ -771,66 +729,62 @@ def download_content(url, format_key, quality_key, output_path, status_callback,
         stderr_snippet = e.stderr[:500] + ('...' if len(e.stderr) > 500 else '')
         error_message = f"❌ {error_tool} {texts['status_error_exec']} {e.returncode}\n{stderr_snippet}"
         status_callback(error_message, "red")
-    except FileNotFoundError:
-        status_callback(texts['status_error_not_found'], "red")
-    except Exception as e:
-        status_callback(f"{texts['status_error_unexpected']} {e}", "red")
 
-# --- 應用程式介面 ---
+    except FileNotFoundError:
+        # 程式碼打包成 EXE 後，如果 yt-dlp.exe, ffmpeg.exe, spotdl.exe 不在同目錄會出現此錯誤
+        status_callback(texts['status_error_not_found'], "red")
+
+    except Exception as e:
+        status_callback(f"{texts['status_error_unexpected']} {str(e)}", "red")
+
+
 class DownloaderApp(ctk.CTk):
+    
     def __init__(self):
         super().__init__()
 
-        # --- 初始化語言設定 (自動偵測) ---
-        detected_lang_code = get_system_language() 
-        self.current_lang = detected_lang_code if detected_lang_code in LANG_DATA else 'en'
+        # 嘗試偵測系統語言並設定預設語言
+        self.current_lang = self.detect_system_language()
+        texts = LANG_DATA.get(self.current_lang, LANG_DATA['en']) # 初始化文本資料
         
-        # 確保中文使用正確的區域代碼
-        if self.current_lang == 'zh' and 'zh_TW' in LANG_DATA:
-            self.current_lang = 'zh_TW'
-        
-        # 預設值和路徑
-        self.output_dir = get_default_download_path()
-        self.current_format_key = 'MP4_VIDEO' # 內部 key
-        self.current_quality_key = 'BEST_VIDEO' # 內部 key
-
-        
-        # --- GUI 佈局設定 ---
-        texts = LANG_DATA[self.current_lang]
+        # 主要設定
         self.title(texts['title'])
-        self.geometry("600x560") 
+        self.geometry("600x600")
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(9, weight=1) # 讓狀態列佔據剩餘空間
+
+        # 狀態變數
+        self.output_dir = get_default_download_path()
+        self.current_format_key = 'MP3_AUDIO'
+        self.current_quality_key = 'BEST_AUDIO'
         
-        # 獲取下拉選單的值 (使用 'lang_display' 鍵)
-        lang_display_values = [data['lang_display'] for data in LANG_DATA.values()]
-        initial_lang_display = LANG_DATA[self.current_lang]['lang_display']
-        
-        # 0. 語言選擇 (Row 0)
+        # 1. 語言選擇
         self.lang_frame = ctk.CTkFrame(self)
-        self.lang_frame.grid(row=0, column=0, padx=20, pady=(20, 5), sticky="ew")
+        self.lang_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         self.lang_frame.grid_columnconfigure(0, weight=1)
         
-        self.lang_label = ctk.CTkLabel(self.lang_frame, text="") 
-        self.lang_label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        self.lang_label = ctk.CTkLabel(self.lang_frame, text="", anchor="w")
+        self.lang_label.grid(row=0, column=0, padx=(0, 10), pady=(0, 5), sticky="w")
         
+        lang_display_names = [LANG_DATA[key]['lang_display'] for key in LANG_DATA]
         self.lang_combobox = ctk.CTkComboBox(
             self.lang_frame, 
-            values=lang_display_values, 
+            values=lang_display_names, 
             command=self.change_language_callback
         )
-        self.lang_combobox.set(initial_lang_display) 
-        self.lang_combobox.grid(row=0, column=1, padx=10, pady=5, sticky="e")
-        
+        self.lang_combobox.grid(row=0, column=1, sticky="e")
 
-        # 1. 網址輸入框 (Row 1, 2)
+        # 2. URL 輸入 (Row 1, 2)
         self.url_label = ctk.CTkLabel(self, text="")
         self.url_label.grid(row=1, column=0, padx=20, pady=(10, 5), sticky="w")
-        self.url_entry = ctk.CTkEntry(self, width=560)
+        
+        self.url_entry = ctk.CTkEntry(self, placeholder_text="Enter URL here...")
         self.url_entry.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
 
-        # 2. 格式選擇 (Row 3, 4)
+        # 3. 格式選擇 (Row 3, 4)
         self.format_label = ctk.CTkLabel(self, text="")
         self.format_label.grid(row=3, column=0, padx=20, pady=(10, 5), sticky="w")
+        
         # 格式的值會在 change_language 中初始化
         self.format_combobox = ctk.CTkComboBox(
             self, 
@@ -838,136 +792,170 @@ class DownloaderApp(ctk.CTk):
             command=self.format_changed_callback
         )
         self.format_combobox.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+
+        # 4. 畫質/音質選擇 (Row 5, 6)
+        self.quality_label = ctk.CTkLabel(self, text="")
+        self.quality_label.grid(row=5, column=0, padx=20, pady=(10, 5), sticky="w")
         
-        # 3. 畫質/音質選擇 (Row 5, 6) 
-        self.quality_label = ctk.CTkLabel(self, text="") 
-        self.quality_label.grid(row=5, column=0, padx=20, pady=(10, 5), sticky="w") 
         # 畫質的值會在 change_language 中初始化
         self.quality_combobox = ctk.CTkComboBox(self, values=[])
         self.quality_combobox.grid(row=6, column=0, padx=20, pady=5, sticky="ew")
 
-        # 4. 輸出路徑顯示與選擇 (Row 7)
+        # 5. 輸出路徑顯示與選擇 (Row 7)
         self.path_frame = ctk.CTkFrame(self)
         self.path_frame.grid(row=7, column=0, padx=20, pady=(15, 5), sticky="ew")
         self.path_frame.grid_columnconfigure(0, weight=1)
         self.path_frame.grid_columnconfigure(1, weight=0)
-
+        
         self.output_label = ctk.CTkLabel(self.path_frame, text="", anchor="w", justify="left")
         self.output_label.grid(row=0, column=0, padx=(0, 10), sticky="ew")
+        
         self.browse_button = ctk.CTkButton(self.path_frame, text="", width=80, command=self.select_output_folder)
         self.browse_button.grid(row=0, column=1, sticky="e")
 
-        # 5. 下載按鈕 (Row 8)
+        # 6. 下載按鈕 (Row 8)
         self.download_button = ctk.CTkButton(self, text="", command=self.start_download_thread)
         self.download_button.grid(row=8, column=0, padx=20, pady=20, sticky="ew")
+
+        # 7. 狀態列 (Row 9)
+        self.status_label = ctk.CTkLabel(self, text="", text_color="gray")
+        self.status_label.grid(row=9, column=0, padx=20, pady=(5, 20), sticky="sw")
         
-        # 6. 狀態列 (Row 9)
-        self.status_label = ctk.CTkLabel(self, text="", text_color="gray") 
-        self.status_label.grid(row=9, column=0, padx=20, pady=(5, 20), sticky="w")
-        
-        # 初始化介面文字和選項
+        # 初始載入語言
         self.change_language(self.current_lang)
 
+    def detect_system_language(self):
+        """偵測系統語言，優先使用繁體中文，否則英文"""
+        try:
+            sys_locale = locale.getdefaultlocale()[0]
+            if sys_locale.startswith('zh_TW'):
+                return 'zh_TW'
+            elif sys_locale.startswith('zh_CN'):
+                return 'zh_CN'
+            elif sys_locale.startswith('ja'):
+                return 'ja'
+            elif sys_locale.startswith('fr'):
+                return 'fr'
+            elif sys_locale.startswith('de'):
+                return 'de'
+            elif sys_locale.startswith('es'):
+                return 'es'
+            elif sys_locale.startswith('pt'):
+                return 'pt'
+            elif sys_locale.startswith('ru'):
+                return 'ru'
+            elif sys_locale.startswith('ko'):
+                return 'ko'
+            elif sys_locale.startswith('ar'):
+                return 'ar'
+            elif sys_locale.startswith('th'):
+                return 'th'
+            elif sys_locale.startswith('vi'):
+                return 'vi'
+            elif sys_locale.startswith('it'):
+                return 'it'
+            elif sys_locale.startswith('tr'):
+                return 'tr'
+            elif sys_locale.startswith('pl'):
+                return 'pl'
+            elif sys_locale.startswith('nl'):
+                return 'nl'
+            elif sys_locale.startswith('fi'):
+                return 'fi'
+            elif sys_locale.startswith('el'):
+                return 'el'
+            elif sys_locale.startswith('hi'):
+                return 'hi'
+            else:
+                return 'zh_TW' # 預設繁體中文
+        except:
+            return 'zh_TW'
 
     def get_key_from_display(self, display_name, options_dict):
-        """根據顯示名稱，反向查找選項的內部 key"""
-        for key, value in options_dict.items():
-            if value == display_name:
+        """根據顯示名稱反查選項的內部 KEY"""
+        for key, name in options_dict.items():
+            if name == display_name:
                 return key
-        # 如果找不到，回傳第一個 key (作為默認值)
-        return list(options_dict.keys())[0] if options_dict else None
+        # 如果找不到，返回第一個鍵名作為預設值
+        return list(options_dict.keys())[0] if options_dict else ''
 
-    def get_display_name_from_key(self, key, options_dict):
-        """根據內部 key，獲取選項的顯示名稱"""
-        return options_dict.get(key, list(options_dict.values())[0] if options_dict else "")
-
-    def change_language_callback(self, choice_display):
-        """處理語言選擇下拉選單的變動"""
-        new_lang = None
-        # 反向查找語言代碼
-        for code, data in LANG_DATA.items():
-            if data['lang_display'] == choice_display:
-                new_lang = code
+    def change_language_callback(self, selection):
+        """當語言下拉選單改變時的處理函式"""
+        # 從顯示名稱反查內部 KEY
+        for key, data in LANG_DATA.items():
+            if data['lang_display'] == selection:
+                self.current_lang = key
                 break
-        
-        if new_lang and new_lang != self.current_lang:
-            self.current_lang = new_lang
-            self.change_language(new_lang)
+        self.change_language(self.current_lang)
 
-    def change_language(self, lang_code):
-        """根據語言代碼更新介面所有文字和選項"""
-        texts = LANG_DATA.get(lang_code, LANG_DATA['en'])
+    def change_language(self, lang_key):
+        """根據選擇的語言更新所有介面元素"""
+        texts = LANG_DATA.get(lang_key, LANG_DATA['en'])
         
-        self.title(texts.get('title'))
+        # 設置頂層標題
+        self.title(texts['title'])
         
-        # 1. 更新標籤和按鈕
+        # 設置語言選單的預設值
+        current_display = texts['lang_display']
+        self.lang_combobox.set(current_display)
         self.lang_label.configure(text=texts['combobox_lang_label'])
-        self.url_label.configure(text=texts['url_label'])
+
+        # 設置格式選項
+        format_options_display = list(texts['options']['formats'].values())
+        self.format_combobox.configure(values=format_options_display)
         self.format_label.configure(text=texts['format_label'])
+        
+        # 確保選中的是當前語言對應的格式 (使用當前 key 查找新的顯示名稱)
+        current_format_display = texts['options']['formats'].get(self.current_format_key, format_options_display[0])
+        self.format_combobox.set(current_format_display)
+        
+        # 更新畫質選項（並觸發畫質/音質選單的更新）
+        self.format_changed_callback(current_format_display)
+        
+        # 更新其他 UI 元素
+        self.url_label.configure(text=texts['url_label'])
+        self.output_label.configure(text=f"{texts['path_label']} {self.output_dir}")
         self.browse_button.configure(text=texts['browse_button'])
         self.download_button.configure(text=texts['download_button'])
-        
-        # 2. 更新格式選項下拉選單
-        format_options_dict = texts['options']['formats']
-        format_display_values = list(format_options_dict.values())
-        self.format_combobox.configure(values=format_display_values)
-        
-        # 嘗試保持選中的格式 (使用內部 key 查找新的顯示名稱)
-        new_display_format = self.get_display_name_from_key(self.current_format_key, format_options_dict)
-        self.format_combobox.set(new_display_format)
-        
-        # 3. 觸發格式回呼，更新畫質/音質標籤和選項
-        self.format_changed_callback(new_display_format)
+        self.status_label.configure(text=texts['ready_status'], text_color="gray")
 
-        # 4. 更新輸出路徑顯示和狀態
-        self.output_label.configure(text=f"{texts['path_label']} {self.output_dir}")
-        self.status_label.configure(text=texts['ready_status'])
-        
-        # 確保語言下拉選單顯示正確的語言名稱
-        self.lang_combobox.set(texts['lang_display'])
-
-
-    def format_changed_callback(self, choice_display):
-        """根據選擇的格式，切換畫質/音質選單的內容和標籤，並更新內部 key"""
+    def format_changed_callback(self, selection):
+        """當格式選擇改變時，動態切換畫質/音質選單的內容"""
         texts = LANG_DATA.get(self.current_lang, LANG_DATA['en'])
         
-        # 根據顯示名稱找到對應的內部 format key
-        format_options_dict = texts['options']['formats']
-        self.current_format_key = self.get_key_from_display(choice_display, format_options_dict)
+        # 根據顯示名稱反查內部 KEY
+        self.current_format_key = self.get_key_from_display(selection, texts['options']['formats'])
         
-        # 檢查是否為音頻格式
+        # 判斷是音頻還是視訊格式
         is_audio = 'AUDIO' in self.current_format_key or 'LOSSLESS' in self.current_format_key
-
+        
         if is_audio:
-            # 切換到音質選項
+            # 設置音頻選項
             self.quality_label.configure(text=texts['quality_audio_label'])
-            quality_options_dict = texts['options']['audio_qualities']
+            options_dict = texts['options']['audio_qualities']
+            options_display = list(options_dict.values())
+            self.quality_combobox.configure(values=options_display)
             
-            # 更新下拉選單
-            new_quality_display_values = list(quality_options_dict.values())
-            self.quality_combobox.configure(values=new_quality_display_values)
-            
-            # 嘗試保持選中的音質 (使用內部 key 查找新的顯示名稱)
-            if self.current_quality_key not in AUDIO_QUALITY_OPTIONS:
-                self.current_quality_key = 'BEST_AUDIO'
-            new_display_quality = self.get_display_name_from_key(self.current_quality_key, quality_options_dict)
-            self.quality_combobox.set(new_display_quality)
+            # 嘗試保持選中原有的音質選項，否則選第一個
+            current_quality_display = texts['options']['audio_qualities'].get(self.current_quality_key)
+            if current_quality_display not in options_display:
+                 current_quality_display = options_display[0]
+            self.quality_combobox.set(current_quality_display)
+            self.current_quality_key = self.get_key_from_display(current_quality_display, options_dict)
 
         else:
-            # 切換到畫質選項 (視訊)
+            # 設置視訊選項
             self.quality_label.configure(text=texts['quality_video_label'])
-            quality_options_dict = texts['options']['video_qualities']
-
-            # 更新下拉選單
-            new_quality_display_values = list(quality_options_dict.values())
-            self.quality_combobox.configure(values=new_quality_display_values)
+            options_dict = texts['options']['video_qualities']
+            options_display = list(options_dict.values())
+            self.quality_combobox.configure(values=options_display)
             
-            # 嘗試保持選中的畫質 (使用內部 key 查找新的顯示名稱)
-            if self.current_quality_key not in QUALITY_OPTIONS:
-                self.current_quality_key = 'BEST_VIDEO'
-            new_display_quality = self.get_display_name_from_key(self.current_quality_key, quality_options_dict)
-            self.quality_combobox.set(new_display_quality)
-
+            # 嘗試保持選中原有的畫質選項，否則選第一個
+            current_quality_display = texts['options']['video_qualities'].get(self.current_quality_key)
+            if current_quality_display not in options_display:
+                 current_quality_display = options_display[0]
+            self.quality_combobox.set(current_quality_display)
+            self.current_quality_key = self.get_key_from_display(current_quality_display, options_dict)
 
     def select_output_folder(self):
         """開啟資料夾選擇對話框，讓使用者選擇輸出資料夾"""
@@ -984,15 +972,19 @@ class DownloaderApp(ctk.CTk):
         self.after(0, self.status_label.configure, {"text": message, "text_color": color})
 
     def start_download_thread(self):
-        """啟動下載線程，並根據網址類型決定使用 yt-dlp 或 spotdl"""
-        url = self.url_entry.get().strip().strip('"') 
+        """在新的執行緒中啟動下載程序，避免 GUI 鎖死"""
         texts = LANG_DATA.get(self.current_lang, LANG_DATA['en'])
+        url = self.url_entry.get().strip()
         
         if not url:
-            self.update_status(texts['error_no_url'], "orange")
+            self.update_status(texts['error_no_url'], "red")
             return
+
+        # 獲取當前選中的格式和品質的 KEY
+        current_format_display = self.format_combobox.get()
+        format_options_dict = texts['options']['formats']
+        self.current_format_key = self.get_key_from_display(current_format_display, format_options_dict)
         
-        # 獲取當前下拉選單的顯示名稱，並更新內部的 quality key
         current_quality_display = self.quality_combobox.get()
         is_audio = 'AUDIO' in self.current_format_key or 'LOSSLESS' in self.current_format_key
 
@@ -1021,10 +1013,11 @@ class DownloaderApp(ctk.CTk):
         else:
             self.download_button.configure(state="normal", text=texts['download_button'])
 
+
 if __name__ == "__main__":
-    # 設定外觀模式和主題
-    ctk.set_appearance_mode("System")
-    ctk.set_default_color_theme("blue")
+    # 使用系統深色模式 (如果有)
+    ctk.set_appearance_mode("System") 
+    ctk.set_default_color_theme("blue") 
     
     app = DownloaderApp()
     app.mainloop()
