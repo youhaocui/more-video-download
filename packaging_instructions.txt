@@ -35,8 +35,7 @@ PyInstaller: 創建獨立可執行檔的推薦工具。
 
 4. PyInstaller 指令
 
-pyinstaller --noconsole --onefile youtube_spotify_downloader.py
-
+pyinstaller --noconfirm --onefile --windowed --name "通用媒體下載器" --collect-all customtkinter --add-binary "yt-dlp.exe;." --add-binary "ffmpeg.exe;." --add-binary "ffprobe.exe;." --add-binary "spotdl.exe;." youtube_spotify_downloader.
 ------------------------------------------------------------------------------------------------------------
 
 English:
@@ -86,4 +85,5 @@ Installation: pip install PyInstaller
 
 4. PyInstaller Commands
 
-pyinstaller --noconsole --onefile youtube_spotify_downloader.py
+
+pyinstaller --noconfirm --onefile --windowed --name "Universal_Media_Downloader" --collect-all customtkinter --add-binary "yt-dlp.exe;." --add-binary "ffmpeg.exe;." --add-binary "ffprobe.exe;." --add-binary "spotdl.exe;." youtube_spotify_downloader.
